@@ -4,10 +4,11 @@ import "testing"
 
 
 func TestOpenPort(t *testing.T) {
-	s := &SDS011{}
+	s := &Client{}
 	s, err := Open(WithPort("usb"))
+	// s, err := Open(WithPort("usb"), WithSerialSettings(nil))
 	if err != nil {
-		t.Errorf("error opening SDS011: %s", err.Error())
+		t.Errorf("error opening Client on port: %s", err.Error())
 	}
 	_ = s
 }
