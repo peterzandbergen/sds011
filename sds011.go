@@ -8,6 +8,10 @@ import (
 	"go.bug.st/serial.v1"
 )
 
+type ReportingMode uint8
+type DeviceId uint16
+type WorkingMode uint8
+
 type Client struct {
 	p    serial.Port
 	mode *serial.Mode
@@ -16,10 +20,33 @@ type Client struct {
 
 type option func(*Client) error
 
-var (
-	ErrNotImplemented = errors.New("not implemented")
+type Data struct {
+	PM25 int
+	PM10 int
+}
+
+const (
+	ActiveMode = ReportingMode(iota)
+	QueryMode
+
+
+	DefaultDeviceId = DeviceId(0xFFFF)
 )
 
+const (
+	Work = WorkingMode(iota)
+	Sleep
+)
+
+var (
+	ErrNotImplemented = errors.New("not implemented")
+
+	portConfig = serial.Mode{
+
+	}
+)
+
+// WithPort specifies the serial port to use.
 func WithPort(port string) option {
 	return func(c *Client) error {
 		c.port = port
@@ -27,6 +54,7 @@ func WithPort(port string) option {
 	}
 }
 
+// WithSerialSettings specifies the serial settings
 func WithSerialSettings(mode *serial.Mode) option {
 	return func(c *Client) error {
 		c.mode = mode
@@ -59,33 +87,12 @@ func (c *Client) Close() {
 	}
 }
 
-type ReportingMode uint8
-type DeviceId uint16
-type WorkingMode uint8
-
-const (
-	ActiveMode = ReportingMode(iota)
-	QueryMode
-
-	DefaultDeviceId = DeviceId(0xFFFF)
-)
-
-const (
-	Work = WorkingMode(iota)
-	Sleep
-)
-
 func (c *Client) SetDataReportingMode(mode ReportingMode, id DeviceId) (DeviceId, error) {
 	return 0, ErrNotImplemented
 }
 
 func (c *Client) GetDataReportingMode(id DeviceId) (ReportingMode, DeviceId, error) {
 	return 0, 0, ErrNotImplemented
-}
-
-type Data struct {
-	PM25 int
-	PM10 int
 }
 
 func (c *Client) QueryData(id DeviceId) (Data, DeviceId, error) {
