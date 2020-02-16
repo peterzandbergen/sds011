@@ -63,26 +63,34 @@ func checksum(d []byte) int {
 	return sum % 256
 }
 
-func (r *Request) Checksum() int {
-	return checksum(r[2 : len(r)-2])
+func (r *Response) ChecksumValid() bool {
+	return r.Checksum() == r.CalculateChecksum()
 }
 
 func (r *Response) Checksum() int {
+	return int(r[8])
+}
+
+func (r *Request) CalculateChecksum() int {
 	return checksum(r[2 : len(r)-2])
 }
 
-func (r DataResponse) PM25() float32 {
+func (r *Response) CalculateChecksum() int {
+	return checksum(r[2 : len(r)-2])
+}
+
+func (r DataResponse) PM25() int {
 	d := r.Response[2:4]
 	h := int(d[1])
 	l := int(d[0])
-	return float32(h*256+l) / 10
+	return h*256+l
 }
 
-func (r DataResponse) PM10() float32 {
+func (r DataResponse) PM10() int {
 	d := r.Response[4:6]
 	h := int(d[1])
 	l := int(d[0])
-	return float32(h*256+l) / 10
+	return h*256+l
 }
 
 func isResponseID(b byte) bool {
