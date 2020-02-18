@@ -68,6 +68,27 @@ func TestDataResponse(t *testing.T) {
 	if ! d.ChecksumValid() {
 		t.Fatal("checksum invald")
 	}
-	t.Logf("PM25 %d", d.PM25())
-	t.Logf("PM10 %d", d.PM10())
+	t.Logf("PM25 %f", d.PM25())
+	t.Logf("PM10 %f", d.PM10())
+}
+
+
+func TestDataResponseIsValid(t *testing.T) {
+	r := bytes.NewBuffer(dataResponse)
+	p := make([]byte, 10)
+	n, err := ReadResponseBytes(context.Background(), r, p)
+	if err != nil {
+		t.Fatalf("error %s", err.Error())
+	}
+	p = p[:n]
+	if n != responseLen {
+		t.Fatalf("error, exptected %d chars, received %d", responseLen, n)
+	}
+	di, err := NewResponse(p)
+	d := di.(*DataResponse)
+	if ! d.IsValid() {
+		t.Fatal("response invald")
+	}
+	t.Logf("PM25 %f", d.PM25())
+	t.Logf("PM10 %f", d.PM10())
 }

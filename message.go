@@ -29,7 +29,7 @@ var (
 	ResponseOK        = errors.New("response found")
 	ErrBufferTooShort = errors.New("buffer must be at least 10 long")
 	ErrBadType        = errors.New("bad type")
-	ErrPortReadError = errors.New("port read error")
+	ErrPortReadError  = errors.New("port read error")
 )
 
 type Request [requestLen]byte
@@ -72,11 +72,19 @@ func (r *Response) Checksum() int {
 	return int(r[8])
 }
 
-func (r *Request) CalculateChecksum() int {
+func (r *Response) CalculateChecksum() int {
 	return checksum(r[2 : len(r)-2])
 }
 
-func (r *Response) CalculateChecksum() int {
+// IsValid checks head, command ID, tail and checksum.
+func (r *Response) IsValid() bool {
+	return r[0] == head &&
+		r[len(r)-1] == tail &&
+		isResponseID(r[1]) &&
+		r.ChecksumValid()
+}
+
+func (r *Request) CalculateChecksum() int {
 	return checksum(r[2 : len(r)-2])
 }
 
@@ -84,23 +92,27 @@ func (r DataResponse) PM25() float64 {
 	d := r.Response[2:4]
 	h := int(d[1])
 	l := int(d[0])
-	return (float64(h)*256.0+float64(l))/10.0
+	return (float64(h)*256.0 + float64(l)) / 10.0
 }
 
 func (r DataResponse) PM10() float64 {
 	d := r.Response[4:6]
 	h := int(d[1])
 	l := int(d[0])
-	return (float64(h)*256.0+float64(l))/10.0
+	return (float64(h)*256.0 + float64(l)) / 10.0
+}
+
+func (r *DataResponse) IsValid() bool {
+	return r.Response[0] == head &&
+		r.Response[len(r.Response)-1] == tail &&
+		r.Response[1] == cIDData &&
+		r.Response.ChecksumValid()
 }
 
 func isResponseID(b byte) bool {
 	return b == cIDData || b == cIDStatus
 }
 
-func isDataID(b byte) bool {
-	return b == cIDData
-}
 
 func newResponse(b []byte) (Response, error) {
 	if len(b) < responseLen {
@@ -142,7 +154,6 @@ func NewResponse(p []byte) (interface{}, error) {
 			return nil, ErrNotImplemented
 		}
 	}
-	
 	return nil, ErrBadType
 }
 
