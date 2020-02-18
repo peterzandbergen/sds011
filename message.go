@@ -80,18 +80,18 @@ func (r *Response) CalculateChecksum() int {
 	return checksum(r[2 : len(r)-2])
 }
 
-func (r DataResponse) PM25() int {
+func (r DataResponse) PM25() float64 {
 	d := r.Response[2:4]
 	h := int(d[1])
 	l := int(d[0])
-	return h*256+l
+	return (float64(h)*256.0+float64(l))/10.0
 }
 
-func (r DataResponse) PM10() int {
+func (r DataResponse) PM10() float64 {
 	d := r.Response[4:6]
 	h := int(d[1])
 	l := int(d[0])
-	return h*256+l
+	return (float64(h)*256.0+float64(l))/10.0
 }
 
 func isResponseID(b byte) bool {

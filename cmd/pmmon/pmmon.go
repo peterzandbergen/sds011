@@ -53,7 +53,7 @@ func logMessages(ctx context.Context, port serial.Port) error {
 		if !ok {
 			log.Printf("error casting to *sds011.Data")
 		}
-		log.Printf("PM25: %d, PM10: %d", d.PM25(), d.PM10())
+		log.Printf("PM25: %4.1f, PM10: %4.1f", d.PM25(), d.PM10())
 	}
 }
 
