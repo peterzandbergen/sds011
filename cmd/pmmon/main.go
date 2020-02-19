@@ -14,7 +14,12 @@ import (
 	"go.bug.st/serial.v1"
 )
 
-// Blocking till port is open
+var (
+	port = flag.String("serport", "/dev/ttyUSB0", "serial port name")
+	scan = flag.Bool("scan", false, "scan for serial ports")
+)
+
+// openPort tries to open the port each 5 seconds
 func openPort(ctx context.Context, name string, mode *serial.Mode) (serial.Port, error) {
 	for {
 		// Open the port
@@ -31,11 +36,6 @@ func openPort(ctx context.Context, name string, mode *serial.Mode) (serial.Port,
 		}
 	}
 }
-
-var (
-	port = flag.String("serport", "/dev/ttyUSB0", "serial port name")
-	scan = flag.Bool("scan", false, "scan for serial ports")
-)
 
 func logMessages(ctx context.Context, port serial.Port) error {
 	p := make([]byte, 10)
