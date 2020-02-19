@@ -34,6 +34,7 @@ func openPort(ctx context.Context, name string, mode *serial.Mode) (serial.Port,
 
 var (
 	port = flag.String("serport", "/dev/ttyUSB0", "serial port name")
+	scan = flag.Bool("scan", false, "scan for serial ports")
 )
 
 func logMessages(ctx context.Context, port serial.Port) error {
@@ -57,8 +58,7 @@ func logMessages(ctx context.Context, port serial.Port) error {
 	}
 }
 
-func main() {
-	flag.Parse()
+func monitor(ctx context.Context, port string) {
 	mode := &serial.Mode{
 		BaudRate: 9600,
 		DataBits: 8,
@@ -66,22 +66,51 @@ func main() {
 		StopBits: serial.OneStopBit,
 	}
 
+	for {
+		port, err := openPort(ctx, port, mode)
+		if errors.Is(err, context.Canceled) {
+			break
+		}
+		err = logMessages(ctx, port)
+		if errors.Is(err, context.Canceled) {
+			break
+		}
+		port.Close()
+	}
+}
+
+func scanPorts(ctx context.Context) {
+	for {
+		ports, err := serial.GetPortsList()
+		if err != nil {
+			log.Printf("error listing ports: %s", err.Error())
+		}
+		for _, p := range ports {
+			log.Printf("port found: %s", p)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(5 * time.Second):
+			break
+		}
+	}
+
+}
+
+func main() {
+	flag.Parse()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go func() {
-		for {
-			port, err := openPort(ctx, *port, mode)
-			if errors.Is(err, context.Canceled) {
-				break
-			}
-			err = logMessages(ctx, port)
-			if errors.Is(err, context.Canceled) {
-				break
-			}
-			port.Close()
-		}
-	}()
+	if *scan {
+		log.Println("searching for serial ports...")
+		go scanPorts(ctx)
+	} else {
+		log.Printf("monitoring %s\n", *port)
+		go monitor(ctx, *port)
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c)
