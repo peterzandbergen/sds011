@@ -58,6 +58,7 @@ func logMessages(ctx context.Context, port serial.Port) error {
 }
 
 func main() {
+	flag.Parse()
 	mode := &serial.Mode{
 		BaudRate: 9600,
 		DataBits: 8,
